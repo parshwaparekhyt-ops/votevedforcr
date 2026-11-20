@@ -1,0 +1,1621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vote for Ved | Class Representative</title>
+    <style>
+        /* =========================================================
+           1. DESIGN TOKENS & GLOBAL RESET
+           ========================================================= */
+        :root {
+            --red: #D91E2A;
+            --red-hover: #B8141F;
+            --red-soft: #FEF2F2;
+            --red-border: #FECACA;
+            --white: #FFFFFF;
+            --bg-gray: #F8F9FA;
+            --charcoal: #18181B;
+            --charcoal-soft: #27272A;
+            --slate: #52525B;
+            --border: #E4E4E7;
+            --green: #15803D;
+            --green-hover: #166534;
+            --green-soft: #F0FDF4;
+            --shadow-sm: 0 2px 6px rgba(24, 24, 27, 0.05);
+            --shadow-md: 0 10px 28px rgba(24, 24, 27, 0.08);
+            --shadow-poster: 0 20px 44px rgba(217, 30, 42, 0.2);
+            --radius-sm: 10px;
+            --radius-md: 16px;
+            --radius-lg: 22px;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-text-size-adjust: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--white);
+            color: var(--charcoal);
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        button {
+            font-family: inherit;
+        }
+
+        svg {
+            display: block;
+            flex-shrink: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Offset anchor scroll so sticky navbar never overlaps headings */
+        section[id] {
+            scroll-margin-top: 84px;
+        }
+
+        /* =========================================================
+           2. CONFETTI CANVAS & TOAST NOTIFICATION
+           ========================================================= */
+        #confetti-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            display: none;
+        }
+
+        #confetti-canvas.is-active {
+            display: block;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translate(-50%, 120px);
+            opacity: 0;
+            z-index: 9000;
+            width: calc(100% - 32px);
+            max-width: 400px;
+            pointer-events: none;
+            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.24s ease;
+        }
+
+        .toast.is-visible {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+
+        .toast-inner {
+            background-color: var(--charcoal);
+            color: var(--white);
+            border-radius: var(--radius-md);
+            padding: 14px 18px;
+            box-shadow: 0 14px 32px rgba(24, 24, 27, 0.28);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 4px solid var(--red);
+        }
+
+        .toast-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background-color: var(--red);
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .toast-msg {
+            font-size: 0.92rem;
+            font-weight: 600;
+            line-height: 1.35;
+        }
+
+        /* =========================================================
+           3. STICKY NAVIGATION BAR
+           ========================================================= */
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background-color: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 72px;
+            gap: 16px;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 900;
+            font-size: 1.08rem;
+            letter-spacing: 0.04em;
+            color: var(--charcoal);
+            text-transform: uppercase;
+        }
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 9px;
+            border-radius: 7px;
+            background-color: var(--red);
+            color: var(--white);
+            font-size: 0.72rem;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+        }
+
+        .nav-desktop {
+            display: none;
+            align-items: center;
+            gap: 28px;
+        }
+
+        .nav-link {
+            font-size: 0.94rem;
+            font-weight: 600;
+            color: var(--slate);
+            padding: 8px 4px;
+            transition: color 0.18s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--red);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-cta {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 42px;
+            padding: 9px 18px;
+            border-radius: 999px;
+            border: none;
+            background-color: var(--red);
+            color: var(--white);
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.18s ease, transform 0.14s ease;
+        }
+
+        .nav-cta:hover {
+            background-color: var(--red-hover);
+            transform: translateY(-1px);
+        }
+
+        .nav-cta.is-pledged {
+            background-color: var(--green);
+        }
+
+        .nav-cta.is-pledged:hover {
+            background-color: var(--green-hover);
+        }
+
+        .menu-toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background-color: var(--white);
+            color: var(--charcoal);
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .menu-toggle:hover {
+            background-color: var(--bg-gray);
+        }
+
+        .mobile-menu {
+            max-height: 0;
+            overflow: hidden;
+            background-color: var(--white);
+            transition: max-height 0.28s ease, padding 0.28s ease;
+        }
+
+        .mobile-menu.is-open {
+            max-height: 320px;
+            padding: 12px 20px 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .mobile-menu a {
+            display: block;
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.98rem;
+            font-weight: 600;
+            color: var(--charcoal);
+            margin-bottom: 4px;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+
+        .mobile-menu a:hover {
+            background-color: var(--bg-gray);
+            color: var(--red);
+        }
+
+        .mobile-cta {
+            width: 100%;
+            min-height: 48px;
+            margin-top: 8px;
+            padding: 12px 18px;
+            border-radius: var(--radius-sm);
+            border: none;
+            background-color: var(--red);
+            color: var(--white);
+            font-size: 0.96rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.18s ease;
+        }
+
+        .mobile-cta:hover {
+            background-color: var(--red-hover);
+        }
+
+        .mobile-cta.is-pledged {
+            background-color: var(--green);
+        }
+
+        /* =========================================================
+           4. HERO SECTION & OFFICIAL CAMPAIGN POSTER CARD
+           ========================================================= */
+        .hero {
+            background-color: var(--white);
+            padding: clamp(44px, 6vw, 76px) 0 clamp(56px, 7vw, 84px);
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .hero-copy {
+            text-align: center;
+        }
+
+        .hero-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 14px;
+            border-radius: 999px;
+            background-color: var(--red-soft);
+            border: 1px solid var(--red-border);
+            color: var(--red);
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 18px;
+        }
+
+        .hero-title {
+            font-size: clamp(2.65rem, 6vw, 4.25rem);
+            font-weight: 900;
+            line-height: 1.03;
+            letter-spacing: -0.03em;
+            color: var(--charcoal);
+            text-transform: uppercase;
+            margin-bottom: 14px;
+        }
+
+        .hero-title .accent {
+            color: var(--red);
+        }
+
+        .hero-tagline {
+            font-size: clamp(1.06rem, 2.2vw, 1.24rem);
+            font-weight: 700;
+            color: var(--charcoal);
+            margin-bottom: 12px;
+        }
+
+        .hero-intro {
+            font-size: 1rem;
+            color: var(--slate);
+            max-width: 540px;
+            margin: 0 auto 28px;
+            line-height: 1.65;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-height: 52px;
+            padding: 13px 24px;
+            border-radius: var(--radius-sm);
+            font-size: 0.96rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.14s ease, background-color 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background-color: var(--red);
+            color: var(--white);
+            border: 2px solid var(--red);
+            box-shadow: 0 8px 20px rgba(217, 30, 42, 0.24);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--red-hover);
+            border-color: var(--red-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary.is-pledged {
+            background-color: var(--green);
+            border-color: var(--green);
+            box-shadow: 0 8px 20px rgba(21, 128, 61, 0.22);
+        }
+
+        .btn-primary.is-pledged:hover {
+            background-color: var(--green-hover);
+            border-color: var(--green-hover);
+        }
+
+        .btn-outline {
+            background-color: var(--white);
+            color: var(--charcoal);
+            border: 2px solid var(--charcoal);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--charcoal);
+            color: var(--white);
+            transform: translateY(-1px);
+        }
+
+        .supporter-pill {
+            margin-top: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            padding: 9px 16px;
+            border-radius: 999px;
+            background-color: var(--bg-gray);
+            border: 1px solid var(--border);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--slate);
+        }
+
+        .supporter-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background-color: var(--red);
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .supporter-num {
+            color: var(--charcoal);
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Official Campaign Poster Card (Pure HTML/CSS/SVG) */
+        .poster-column {
+            display: flex;
+            justify-content: center;
+        }
+
+        .poster-frame {
+            width: 100%;
+            max-width: 420px;
+            background-color: var(--red);
+            border-radius: var(--radius-lg);
+            padding: 12px;
+            box-shadow: var(--shadow-poster);
+        }
+
+        .poster-inner {
+            background-color: var(--white);
+            border: 2px solid var(--charcoal);
+            border-radius: 14px;
+            padding: 26px 22px 24px;
+            text-align: center;
+            color: var(--charcoal);
+        }
+
+        .poster-top-label {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--red);
+            padding: 5px 12px;
+            border-radius: 999px;
+            background-color: var(--red-soft);
+            border: 1px solid var(--red-border);
+            margin-bottom: 18px;
+        }
+
+        .poster-stack-vote {
+            font-size: 1.2rem;
+            font-weight: 900;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--charcoal);
+            line-height: 1.1;
+        }
+
+        .poster-stack-ved {
+            font-size: clamp(3.6rem, 11vw, 4.6rem);
+            font-weight: 900;
+            line-height: 0.94;
+            letter-spacing: -0.04em;
+            text-transform: uppercase;
+            color: var(--red);
+            margin: 6px 0 8px;
+        }
+
+        .poster-stack-role {
+            font-size: 0.84rem;
+            font-weight: 800;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--slate);
+            margin-bottom: 20px;
+        }
+
+        .poster-banner {
+            background-color: var(--red);
+            color: var(--white);
+            border-radius: 10px;
+            padding: 11px 16px;
+            font-size: 0.88rem;
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .poster-highlights {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .poster-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 14px;
+            border-radius: var(--radius-sm);
+            background-color: var(--bg-gray);
+            border: 1px solid var(--border);
+            text-align: left;
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: var(--charcoal);
+        }
+
+        .poster-row-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            background-color: var(--red-soft);
+            color: var(--red);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* =========================================================
+           5. SHARED SECTION STYLES
+           ========================================================= */
+        .section {
+            padding: clamp(56px, 7vw, 84px) 0;
+        }
+
+        .section-gray {
+            background-color: var(--bg-gray);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 660px;
+            margin: 0 auto 44px;
+        }
+
+        .section-eyebrow {
+            display: inline-block;
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--red);
+            margin-bottom: 10px;
+        }
+
+        .section-title {
+            font-size: clamp(1.85rem, 4vw, 2.45rem);
+            font-weight: 900;
+            letter-spacing: -0.025em;
+            line-height: 1.15;
+            color: var(--charcoal);
+            margin-bottom: 12px;
+        }
+
+        .section-subtitle {
+            font-size: 1rem;
+            color: var(--slate);
+        }
+
+        /* =========================================================
+           6. WHY CHOOSE VED? (3-CARD LAYOUT)
+           ========================================================= */
+        .traits-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        .trait-card {
+            background-color: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 28px 24px;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .trait-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--red-border);
+        }
+
+        .trait-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            background-color: var(--red-soft);
+            border: 1px solid var(--red-border);
+            color: var(--red);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .trait-card h3 {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--charcoal);
+            margin-bottom: 10px;
+            letter-spacing: -0.015em;
+        }
+
+        .trait-card p {
+            font-size: 0.96rem;
+            color: var(--slate);
+            line-height: 1.65;
+        }
+
+        /* =========================================================
+           7. THE MANIFESTO (5 NUMBERED CARDS)
+           ========================================================= */
+        .manifesto-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .manifesto-card {
+            background-color: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            display: flex;
+            align-items: flex-start;
+            gap: 18px;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .manifesto-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--red-border);
+        }
+
+        .manifesto-num {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            background-color: var(--red);
+            color: var(--white);
+            font-size: 1.02rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            letter-spacing: 0.02em;
+        }
+
+        .manifesto-body h3 {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--charcoal);
+            margin-bottom: 6px;
+            letter-spacing: -0.01em;
+        }
+
+        .manifesto-body p {
+            font-size: 0.95rem;
+            color: var(--slate);
+            line-height: 1.6;
+        }
+
+        /* =========================================================
+           8. ASK VED (CLEAN INSTAGRAM DM CTA CARD ONLY)
+           ========================================================= */
+        .dm-card {
+            max-width: 720px;
+            margin: 0 auto;
+            background-color: var(--white);
+            border: 1px solid var(--border);
+            border-top: 5px solid var(--red);
+            border-radius: var(--radius-lg);
+            padding: clamp(32px, 5vw, 48px) clamp(20px, 4vw, 40px);
+            text-align: center;
+            box-shadow: var(--shadow-md);
+        }
+
+        .dm-icon-wrap {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            background-color: var(--red-soft);
+            border: 1px solid var(--red-border);
+            color: var(--red);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+        }
+
+        .dm-eyebrow {
+            display: block;
+            font-size: 0.74rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--red);
+            margin-bottom: 8px;
+        }
+
+        .dm-card h2 {
+            font-size: clamp(1.55rem, 3.6vw, 2.05rem);
+            font-weight: 900;
+            color: var(--charcoal);
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+            margin-bottom: 12px;
+        }
+
+        .dm-card p {
+            font-size: 1rem;
+            color: var(--slate);
+            max-width: 520px;
+            margin: 0 auto 22px;
+            line-height: 1.65;
+        }
+
+        .dm-handle-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 18px;
+            border-radius: 999px;
+            background-color: var(--bg-gray);
+            border: 1px solid var(--border);
+            color: var(--charcoal);
+            font-size: 0.98rem;
+            font-weight: 800;
+            margin-bottom: 24px;
+        }
+
+        .dm-handle-pill svg {
+            color: var(--red);
+        }
+
+        .dm-cta-wrap {
+            display: flex;
+            justify-content: center;
+        }
+
+        .dm-cta-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-height: 54px;
+            padding: 14px 28px;
+            border-radius: var(--radius-sm);
+            background-color: var(--red);
+            color: var(--white);
+            font-size: 0.98rem;
+            font-weight: 800;
+            box-shadow: 0 10px 24px rgba(217, 30, 42, 0.25);
+            transition: background-color 0.18s ease, transform 0.15s ease;
+        }
+
+        .dm-cta-btn:hover {
+            background-color: var(--red-hover);
+            transform: translateY(-2px);
+        }
+
+        /* =========================================================
+           9. FOOTER (DEEP CHARCOAL)
+           ========================================================= */
+        .site-footer {
+            background-color: var(--charcoal);
+            color: var(--white);
+            padding: 56px 0 40px;
+        }
+
+        .footer-inner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 20px;
+        }
+
+        .footer-brand {
+            font-size: 1.65rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--white);
+        }
+
+        .footer-brand span {
+            color: var(--red);
+        }
+
+        .footer-tagline {
+            font-size: 0.98rem;
+            color: #D4D4D8;
+            margin-top: 4px;
+        }
+
+        .insta-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-height: 48px;
+            padding: 11px 24px;
+            border-radius: 999px;
+            background-color: var(--red);
+            color: var(--white);
+            font-size: 0.95rem;
+            font-weight: 700;
+            box-shadow: 0 8px 22px rgba(217, 30, 42, 0.32);
+            transition: background-color 0.18s ease, transform 0.15s ease;
+        }
+
+        .insta-pill:hover {
+            background-color: var(--red-hover);
+            transform: translateY(-2px);
+        }
+
+        .footer-divider {
+            width: 100%;
+            height: 1px;
+            background-color: var(--charcoal-soft);
+            margin-top: 8px;
+        }
+
+        .footer-copy {
+            font-size: 0.86rem;
+            color: #A1A1AA;
+        }
+
+        /* =========================================================
+           10. RESPONSIVE BREAKPOINTS
+           ========================================================= */
+        @media (min-width: 640px) {
+            .hero-actions {
+                flex-direction: row;
+                justify-content: center;
+            }
+            .btn {
+                width: auto;
+            }
+            .manifesto-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 768px) {
+            .nav-desktop {
+                display: flex;
+            }
+            .nav-cta {
+                display: inline-flex;
+            }
+            .menu-toggle,
+            .mobile-menu {
+                display: none !important;
+            }
+            .traits-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .hero-grid {
+                grid-template-columns: 1.12fr 0.88fr;
+                gap: 48px;
+            }
+            .hero-copy {
+                text-align: left;
+            }
+            .hero-intro {
+                margin-left: 0;
+                margin-right: 0;
+            }
+            .hero-actions {
+                justify-content: flex-start;
+            }
+            .manifesto-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            /* Center the 5th manifesto card cleanly on desktop */
+            .manifesto-card:last-child:nth-child(odd) {
+                grid-column: 1 / -1;
+                max-width: 540px;
+                width: 100%;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Celebratory Confetti Canvas -->
+    <canvas id="confetti-canvas" aria-hidden="true"></canvas>
+
+    <!-- Custom Bottom Toast Notification -->
+    <div id="toast" class="toast" role="status" aria-live="polite">
+        <div class="toast-inner">
+            <span class="toast-icon" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </span>
+            <p id="toast-message" class="toast-msg">Notification</p>
+        </div>
+    </div>
+
+    <!-- 1. STICKY NAVIGATION BAR -->
+    <header class="site-header">
+        <div class="container">
+            <div class="nav-bar">
+                <a href="#top" class="brand">
+                    <span>VED FOR CR</span>
+                    <span class="brand-badge">VOTE</span>
+                </a>
+
+                <nav class="nav-desktop" aria-label="Primary Navigation">
+                    <a href="#why-ved" class="nav-link">Why Ved</a>
+                    <a href="#manifesto" class="nav-link">Manifesto</a>
+                    <a href="#ask-ved" class="nav-link">Ask Ved</a>
+                </nav>
+
+                <div class="nav-actions">
+                    <button id="nav-pledge-btn" type="button" class="nav-cta">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span id="nav-pledge-text">Pledge Support</span>
+                    </button>
+
+                    <button id="menu-toggle" class="menu-toggle" type="button" aria-label="Toggle Menu" aria-expanded="false">
+                        <svg id="icon-hamburger" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+                            <line x1="4" y1="7" x2="20" y2="7"></line>
+                            <line x1="4" y1="12" x2="20" y2="12"></line>
+                            <line x1="4" y1="17" x2="20" y2="17"></line>
+                        </svg>
+                        <svg id="icon-close" style="display:none;" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <nav id="mobile-menu" class="mobile-menu" aria-label="Mobile Navigation">
+            <a href="#why-ved" class="mobile-nav-link">Why Ved</a>
+            <a href="#manifesto" class="mobile-nav-link">Manifesto</a>
+            <a href="#ask-ved" class="mobile-nav-link">Ask Ved</a>
+            <button id="mobile-pledge-btn" type="button" class="mobile-cta">Pledge Support</button>
+        </nav>
+    </header>
+
+    <main id="top">
+        <!-- 2. HERO SECTION -->
+        <section class="hero">
+            <div class="container">
+                <div class="hero-grid">
+                    <!-- Left Column -->
+                    <div class="hero-copy">
+                        <div class="hero-pill">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                            THE TOP CANDIDATE FOR CLASS REPRESENTATIVE
+                        </div>
+
+                        <h1 class="hero-title">
+                            VOTE FOR <span class="accent">VED</span>
+                        </h1>
+
+                        <p class="hero-tagline">
+                            Your Voice, Our Future &mdash; Dedicated to Represent You.
+                        </p>
+
+                        <p class="hero-intro">
+                            Bridging the gap between students and faculty with real action, complete transparency, and everyday approachability &mdash; so every classmate is heard and supported.
+                        </p>
+
+                        <div class="hero-actions">
+                            <button id="pledge-btn" type="button" class="btn btn-primary">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                </svg>
+                                <span id="pledge-btn-text">Pledge Your Support</span>
+                            </button>
+
+                            <button id="share-btn" type="button" class="btn btn-outline">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                                </svg>
+                                <span>Copy Campaign Link</span>
+                            </button>
+                        </div>
+
+                        <div class="supporter-pill">
+                            <span class="supporter-dot" aria-hidden="true"></span>
+                            <span>
+                                <strong id="supporter-count" class="supporter-num">142</strong> classmates have pledged support
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Official Campaign Poster Card -->
+                    <div class="poster-column">
+                        <div class="poster-frame" aria-label="Official Vote for Ved Campaign Poster">
+                            <div class="poster-inner">
+                                <div class="poster-top-label">OFFICIAL CAMPAIGN POSTER</div>
+
+                                <div class="poster-stack-vote">VOTE FOR</div>
+                                <div class="poster-stack-ved">VED</div>
+                                <div class="poster-stack-role">CLASS REPRESENTATIVE</div>
+
+                                <div class="poster-banner">YOUR VOICE. HIS ACTION.</div>
+
+                                <div class="poster-highlights">
+                                    <div class="poster-row">
+                                        <span class="poster-row-icon" aria-hidden="true">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                            </svg>
+                                        </span>
+                                        <span>Approachable</span>
+                                    </div>
+
+                                    <div class="poster-row">
+                                        <span class="poster-row-icon" aria-hidden="true">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                            </svg>
+                                        </span>
+                                        <span>Accountable</span>
+                                    </div>
+
+                                    <div class="poster-row">
+                                        <span class="poster-row-icon" aria-hidden="true">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                                <circle cx="9" cy="7" r="4"></circle>
+                                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                            </svg>
+                                        </span>
+                                        <span>Always Listening</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. WHY CHOOSE VED? SECTION (RESTORED 3-CARD LAYOUT) -->
+        <section id="why-ved" class="section section-gray">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-eyebrow">WHY CHOOSE VED</span>
+                    <h2 class="section-title">Leadership Built on Action, Not Just Promises</h2>
+                    <p class="section-subtitle">
+                        Dependable student representation grounded in listening, clear communication, and follow-through.
+                    </p>
+                </div>
+
+                <div class="traits-grid">
+                    <!-- Card 1 -->
+                    <article class="trait-card">
+                        <div class="trait-icon" aria-hidden="true">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                        </div>
+                        <h3>Always Approachable</h3>
+                        <p>
+                            Easy to talk to in the hallway, classroom, or DMs. Every classmate's concern gets heard without hesitation.
+                        </p>
+                    </article>
+
+                    <!-- Card 2 -->
+                    <article class="trait-card">
+                        <div class="trait-icon" aria-hidden="true">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                            </svg>
+                        </div>
+                        <h3>Action-Oriented</h3>
+                        <p>
+                            Focused on real, practical solutions rather than empty words. Follows up with faculty until issues are actually resolved.
+                        </p>
+                    </article>
+
+                    <!-- Card 3 -->
+                    <article class="trait-card">
+                        <div class="trait-icon" aria-hidden="true">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                <polyline points="9 12 11 14 15 10"></polyline>
+                            </svg>
+                        </div>
+                        <h3>Transparent &amp; Reliable</h3>
+                        <p>
+                            Keeps the entire class in the loop on schedules, deadlines, and updates with clear, timely communication.
+                        </p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. THE MANIFESTO SECTION -->
+        <section id="manifesto" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-eyebrow">5-POINT ACTION PLAN</span>
+                    <h2 class="section-title">What Ved Stands For</h2>
+                    <p class="section-subtitle">
+                        Practical, everyday commitments focused on making this semester smoother and better for our entire class.
+                    </p>
+                </div>
+
+                <div class="manifesto-grid">
+                    <!-- Point 01 -->
+                    <article class="manifesto-card">
+                        <div class="manifesto-num">01</div>
+                        <div class="manifesto-body">
+                            <h3>Clear &amp; Timely Class Updates</h3>
+                            <p>
+                                Share concise, clutter-free summaries of timetable shifts, notices, and important announcements so nobody misses a beat.
+                            </p>
+                        </div>
+                    </article>
+
+                    <!-- Point 02 -->
+                    <article class="manifesto-card">
+                        <div class="manifesto-num">02</div>
+                        <div class="manifesto-body">
+                            <h3>Fair Exam &amp; Assignment Coordination</h3>
+                            <p>
+                                Coordinate early with professors whenever multiple submissions or quizzes clash, keeping workloads balanced and fair.
+                            </p>
+                        </div>
+                    </article>
+
+                    <!-- Point 03 -->
+                    <article class="manifesto-card">
+                        <div class="manifesto-num">03</div>
+                        <div class="manifesto-body">
+                            <h3>Faster Doubt &amp; Faculty Follow-Ups</h3>
+                            <p>
+                                Act as a responsive bridge between students and faculty so syllabus questions, lab issues, and concerns get solved quickly.
+                            </p>
+                        </div>
+                    </article>
+
+                    <!-- Point 04 -->
+                    <article class="manifesto-card">
+                        <div class="manifesto-num">04</div>
+                        <div class="manifesto-body">
+                            <h3>Better Notes &amp; Study Resource Sharing</h3>
+                            <p>
+                                Build an organized, easy-to-access shared drive for lecture notes, reference slides, and past exam papers for everyone.
+                            </p>
+                        </div>
+                    </article>
+
+                    <!-- Point 05 -->
+                    <article class="manifesto-card">
+                        <div class="manifesto-num">05</div>
+                        <div class="manifesto-body">
+                            <h3>Inclusive Class Events &amp; Activities</h3>
+                            <p>
+                                Plan engaging class outings, group study sessions, and campus activities where every single classmate feels welcome.
+                            </p>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. ASK VED SECTION (CLEAN INSTAGRAM DM CTA ONLY) -->
+        <section id="ask-ved" class="section section-gray">
+            <div class="container">
+                <div class="dm-card">
+                    <div class="dm-icon-wrap" aria-hidden="true">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                        </svg>
+                    </div>
+
+                    <span class="dm-eyebrow">DIRECT COMMUNICATION</span>
+                    <h2>Have a Question? DM Ved Directly!</h2>
+                    <p>
+                        Got a suggestion, concern, or idea for our class? Skip the middleman and message Ved directly on Instagram.
+                    </p>
+
+                    <div class="dm-handle-pill">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                        </svg>
+                        <span>@vedwillbethe_cr</span>
+                    </div>
+
+                    <div class="dm-cta-wrap">
+                        <a
+                            href="https://www.instagram.com/vedwillbethe_cr?cnvx=bXVyb280d216ZXhz"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="dm-cta-btn"
+                        >
+                            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                            </svg>
+                            <span>DM @vedwillbethe_cr on Instagram</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 6. FOOTER (DEEP CHARCOAL) -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-inner">
+                <div>
+                    <h2 class="footer-brand">VED FOR <span>CR</span></h2>
+                    <p class="footer-tagline">Your Voice, Our Future.</p>
+                </div>
+
+                <a
+                    href="https://www.instagram.com/vedwillbethe_cr?cnvx=bXVyb280d216ZXhz"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="insta-pill"
+                >
+                    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                    </svg>
+                    <span>@vedwillbethe_cr</span>
+                </a>
+
+                <div class="footer-divider" aria-hidden="true"></div>
+
+                <p class="footer-copy">
+                    &copy; Ved for CR Campaign &bull; Class Representative Election
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- VANILLA JAVASCRIPT (100% SELF-CONTAINED & ASCII-SAFE) -->
+    <script>
+        (function () {
+            'use strict';
+
+            // ---------------------------------------------------------
+            // 1. BOTTOM TOAST NOTIFICATION
+            // ---------------------------------------------------------
+            var toastTimer = null;
+            function showToast(message) {
+                var toast = document.getElementById('toast');
+                var msgEl = document.getElementById('toast-message');
+                if (!toast || !msgEl) return;
+
+                msgEl.textContent = message;
+                toast.classList.add('is-visible');
+
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(function () {
+                    toast.classList.remove('is-visible');
+                }, 3000);
+            }
+
+            // ---------------------------------------------------------
+            // 2. MOBILE HAMBURGER MENU
+            // ---------------------------------------------------------
+            var menuToggle = document.getElementById('menu-toggle');
+            var mobileMenu = document.getElementById('mobile-menu');
+            var iconHamburger = document.getElementById('icon-hamburger');
+            var iconClose = document.getElementById('icon-close');
+            var mobileLinks = document.querySelectorAll('.mobile-nav-link');
+
+            function setMenuOpen(isOpen) {
+                if (!mobileMenu || !menuToggle) return;
+                if (isOpen) {
+                    mobileMenu.classList.add('is-open');
+                    if (iconHamburger) iconHamburger.style.display = 'none';
+                    if (iconClose) iconClose.style.display = 'block';
+                    menuToggle.setAttribute('aria-expanded', 'true');
+                } else {
+                    mobileMenu.classList.remove('is-open');
+                    if (iconHamburger) iconHamburger.style.display = 'block';
+                    if (iconClose) iconClose.style.display = 'none';
+                    menuToggle.setAttribute('aria-expanded', 'false');
+                }
+            }
+
+            if (menuToggle) {
+                menuToggle.addEventListener('click', function () {
+                    var isOpen = mobileMenu && mobileMenu.classList.contains('is-open');
+                    setMenuOpen(!isOpen);
+                });
+            }
+
+            for (var i = 0; i < mobileLinks.length; i++) {
+                mobileLinks[i].addEventListener('click', function () {
+                    setMenuOpen(false);
+                });
+            }
+
+            // ---------------------------------------------------------
+            // 3. CONFETTI BURST (RESIZE-SAFE & CLEAN STOP)
+            // ---------------------------------------------------------
+            var confettiCanvas = document.getElementById('confetti-canvas');
+            var confettiCtx = confettiCanvas && confettiCanvas.getContext ? confettiCanvas.getContext('2d') : null;
+            var confettiParticles = [];
+            var confettiRafId = null;
+
+            function resizeConfettiCanvas() {
+                if (!confettiCanvas) return;
+                confettiCanvas.width = window.innerWidth;
+                confettiCanvas.height = window.innerHeight;
+            }
+
+            window.addEventListener('resize', function () {
+                if (confettiCanvas && confettiCanvas.classList.contains('is-active')) {
+                    resizeConfettiCanvas();
+                }
+            });
+
+            function stopConfetti() {
+                if (confettiRafId !== null) {
+                    cancelAnimationFrame(confettiRafId);
+                    confettiRafId = null;
+                }
+                confettiParticles = [];
+                if (confettiCtx && confettiCanvas) {
+                    confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+                    confettiCanvas.classList.remove('is-active');
+                }
+            }
+
+            function animateConfetti() {
+                if (!confettiCtx || !confettiCanvas) return;
+                confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+
+                var remaining = 0;
+                for (var idx = 0; idx < confettiParticles.length; idx++) {
+                    var p = confettiParticles[idx];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += p.gravity;
+                    p.angle += p.spin;
+
+                    if (p.y < confettiCanvas.height + 24) {
+                        remaining++;
+                        confettiCtx.save();
+                        confettiCtx.translate(p.x, p.y);
+                        confettiCtx.rotate((p.angle * Math.PI) / 180);
+                        confettiCtx.fillStyle = p.color;
+                        confettiCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                        confettiCtx.restore();
+                    }
+                }
+
+                if (remaining > 0) {
+                    confettiRafId = requestAnimationFrame(animateConfetti);
+                } else {
+                    stopConfetti();
+                }
+            }
+
+            function launchConfetti() {
+                if (!confettiCanvas || !confettiCtx) return;
+                stopConfetti();
+                resizeConfettiCanvas();
+                confettiCanvas.classList.add('is-active');
+
+                var colors = ['#D91E2A', '#B8141F', '#18181B', '#F59E0B', '#D97706', '#E4E4E7'];
+                var count = 95;
+                for (var n = 0; n < count; n++) {
+                    confettiParticles.push({
+                        x: confettiCanvas.width * 0.5 + (Math.random() - 0.5) * 200,
+                        y: confettiCanvas.height * 0.35 + (Math.random() - 0.5) * 60,
+                        vx: (Math.random() - 0.5) * 14,
+                        vy: (Math.random() - 1) * 13 - 3,
+                        w: Math.random() * 9 + 5,
+                        h: Math.random() * 6 + 4,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        angle: Math.random() * 360,
+                        spin: (Math.random() - 0.5) * 12,
+                        gravity: 0.34
+                    });
+                }
+
+                confettiRafId = requestAnimationFrame(animateConfetti);
+            }
+
+            // ---------------------------------------------------------
+            // 4. SAFE LOCALSTORAGE PLEDGE COUNTER
+            // ---------------------------------------------------------
+            var STORAGE_COUNT = 'ved_cr_supporters_clean_v1';
+            var STORAGE_PLEDGED = 'ved_cr_pledged_clean_v1';
+
+            var supporterCountEl = document.getElementById('supporter-count');
+            var pledgeBtn = document.getElementById('pledge-btn');
+            var pledgeBtnText = document.getElementById('pledge-btn-text');
+            var navPledgeBtn = document.getElementById('nav-pledge-btn');
+            var navPledgeText = document.getElementById('nav-pledge-text');
+            var mobilePledgeBtn = document.getElementById('mobile-pledge-btn');
+
+            var supporterCount = 142;
+            var hasPledged = false;
+
+            try {
+                var savedCount = parseInt(localStorage.getItem(STORAGE_COUNT), 10);
+                if (!isNaN(savedCount) && savedCount >= 142) {
+                    supporterCount = savedCount;
+                }
+                if (localStorage.getItem(STORAGE_PLEDGED) === 'true') {
+                    hasPledged = true;
+                }
+            } catch (e) {
+                // Ignore storage errors in private or sandboxed environments
+            }
+
+            function renderPledgeState() {
+                if (supporterCountEl) {
+                    supporterCountEl.textContent = String(supporterCount);
+                }
+
+                if (hasPledged) {
+                    if (pledgeBtn) pledgeBtn.classList.add('is-pledged');
+                    if (pledgeBtnText) pledgeBtnText.textContent = 'Support Pledged';
+                    if (navPledgeBtn) navPledgeBtn.classList.add('is-pledged');
+                    if (navPledgeText) navPledgeText.textContent = 'Supported';
+                    if (mobilePledgeBtn) {
+                        mobilePledgeBtn.classList.add('is-pledged');
+                        mobilePledgeBtn.textContent = 'Support Pledged';
+                    }
+                } else {
+                    if (pledgeBtn) pledgeBtn.classList.remove('is-pledged');
+                    if (pledgeBtnText) pledgeBtnText.textContent = 'Pledge Your Support';
+                    if (navPledgeBtn) navPledgeBtn.classList.remove('is-pledged');
+                    if (navPledgeText) navPledgeText.textContent = 'Pledge Support';
+                    if (mobilePledgeBtn) {
+                        mobilePledgeBtn.classList.remove('is-pledged');
+                        mobilePledgeBtn.textContent = 'Pledge Support';
+                    }
+                }
+            }
+            renderPledgeState();
+
+            function handlePledge(scrollToHero) {
+                setMenuOpen(false);
+
+                if (scrollToHero) {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+
+                if (!hasPledged) {
+                    hasPledged = true;
+                    supporterCount += 1;
+                    launchConfetti();
+                    showToast('Thank you for pledging your support for Ved!');
+                } else {
+                    hasPledged = false;
+                    supporterCount = Math.max(142, supporterCount - 1);
+                    showToast('Support pledge removed.');
+                }
+
+                try {
+                    localStorage.setItem(STORAGE_COUNT, String(supporterCount));
+                    localStorage.setItem(STORAGE_PLEDGED, hasPledged ? 'true' : 'false');
+                } catch (e) {
+                    // Ignore storage errors
+                }
+
+                renderPledgeState();
+            }
+
+            if (pledgeBtn) {
+                pledgeBtn.addEventListener('click', function () {
+                    handlePledge(false);
+                });
+            }
+            if (navPledgeBtn) {
+                navPledgeBtn.addEventListener('click', function () {
+                    handlePledge(true);
+                });
+            }
+            if (mobilePledgeBtn) {
+                mobilePledgeBtn.addEventListener('click', function () {
+                    handlePledge(true);
+                });
+            }
+
+            // ---------------------------------------------------------
+            // 5. COPY CAMPAIGN LINK (CLIPBOARD API + TEXTAREA FALLBACK)
+            // ---------------------------------------------------------
+            var shareBtn = document.getElementById('share-btn');
+
+            function fallbackCopyText(text) {
+                try {
+                    var textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    textarea.setAttribute('readonly', '');
+                    textarea.style.position = 'fixed';
+                    textarea.style.top = '0';
+                    textarea.style.left = '0';
+                    textarea.style.opacity = '0';
+                    document.body.appendChild(textarea);
+                    textarea.focus();
+                    textarea.select();
+                    var ok = document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    if (ok) {
+                        showToast('Campaign link copied to clipboard!');
+                    } else {
+                        showToast('Copy the URL from your address bar to share.');
+                    }
+                } catch (err) {
+                    showToast('Copy the URL from your address bar to share.');
+                }
+            }
+
+            if (shareBtn) {
+                shareBtn.addEventListener('click', function () {
+                    var url = window.location.href;
+                    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                        navigator.clipboard.writeText(url).then(function () {
+                            showToast('Campaign link copied to clipboard!');
+                        }).catch(function () {
+                            fallbackCopyText(url);
+                        });
+                    } else {
+                        fallbackCopyText(url);
+                    }
+                });
+            }
+        })();
+    </script>
+</body>
+</html>
